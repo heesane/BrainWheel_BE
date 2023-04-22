@@ -1,0 +1,39 @@
+version: '3'
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    env_file:
+      - 'data/influxdb/env.influxdb'
+    volumes:
+      # Data persistency
+      - ./data/influxdb/data:/root/.influxdb
+      - ./data/influxdb/etc:/etc/influxdb/:ro
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file:
+      - 'data/grafana/env.grafana'
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    links:
+      - influxdb
+    restart: always
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    env_file:
+      - 'data/mysql/env.mysql'
+    volumes:
+      - ./data/mysql/data:/var/lib/mysql
+      - ./data/mysql/etc:/etc/mysql/conf.d
+    restart: always
