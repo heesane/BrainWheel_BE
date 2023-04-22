@@ -2,7 +2,6 @@
 # 2. 해당 데이터를 influxdb로 보냄
 # 3. user별로 새로운 table 생성 -> DB에 어느정도의 부하?
 # 4. 서버에서 인공지능 프로그램 실행
-print("hi")
 # Describe Table
 # +--------------+--------------+------+-----+---------+----------------+
 # | Field        | Type         | Null | Key | Default | Extra          |
