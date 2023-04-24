@@ -31,7 +31,7 @@ def login_mysql():
     conn = pymysql.connect(host = IP,
                      port=3306,
                      user='hhs',
-                     passwd='5499458kK@',
+                     passwd='hhs',
                      db='test_db',
                      charset='utf8',
                      autocommit=True)
