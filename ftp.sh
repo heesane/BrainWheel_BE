@@ -1,18 +1,21 @@
 #!/bin/bash
 
-# vsftpd ¼³Ä¡
+# vsftpd ì„¤ì¹˜
 sudo apt-get update
 sudo apt-get install vsftpd
 
-# /etc/ftpusers ÆÄÀÏ¿¡ ubuntu »ç¿ëÀÚ Ãß°¡
+# /etc/ftpusersì—  ubuntu ìœ ì € ì¶”ê°€
 sudo echo "ubuntu" >> /etc/ftpusers
 
-# /etc/vsftpd.conf ÆÄÀÏ¿¡¼­ sftp_server¸¦ ÁÖ¼® ÇØÁ¦
+# /etc/vsftpd.confì—ì„œ  sftp_serverë¶€ë¶„ ì£¼ì„ í•´ì œ
 sed -i -e '122s/^#//' -e '123s/^#//' -e '125s/^#//' /etc/vsftpd.conf
-# vsftpd ¼­ºñ½º Àç½ÃÀÛ
+# vsftpd ì„œë¹„ìŠ¤ ì¬ì‹œì‘
 sudo systemctl restart vsftpd
 
+# dockerì™€ docker-compose ì„¤ì¹˜
 sudo apt install docker docker-compose
+# git clone í›„, docker-composeë¥¼ ~/ ë””ë ‰í† ë¦¬ë¡œ ì´ë™
 mv ~/Python_BrainWheel/docker-compose.yml ~/
+# docker-compose Daemonìœ¼ë¡œ ì‹œì‘
 sudo docker-compose up -d
 

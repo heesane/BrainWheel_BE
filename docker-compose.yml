@@ -6,11 +6,11 @@ services:
     ports:
       - "8086:8086"
     env_file:
-      - 'data/influxdb/env.influxdb'
+      - 'BrainWheel_BE/data/influxdb/env.influxdb'
     volumes:
       # Data persistency
-      - ./data/influxdb/data:/root/.influxdb
-      - ./data/influxdb/etc:/etc/influxdb/:ro
+      - ./BrainWheel_BE/data/influxdb/data:/root/.influxdb
+      - ./BrainWheel_BE/data/influxdb/etc:/etc/influxdb/:ro
     restart: always
 
   grafana:
@@ -19,9 +19,9 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - 'data/grafana/env.grafana'
+      - 'BrainWheel_BE/data/grafana/env.grafana'
     volumes:
-      - ./data/grafana:/var/lib/grafana
+      - ./BrainWheel_BE/data/grafana:/var/lib/grafana
     links:
       - influxdb
     restart: always
@@ -32,8 +32,8 @@ services:
     ports:
       - "3306:3306"
     env_file:
-      - 'data/mysql/env.mysql'
+      - 'BrainWheel_BE/data/mysql/env.mysql'
     volumes:
-      - ./data/mysql/data:/var/lib/mysql
-      - ./data/mysql/etc:/etc/mysql/conf.d
+      - ./BrainWheel_BE/data/mysql/data:/var/lib/mysql
+      - ./BrainWheel_BE/data/mysql/etc:/etc/mysql/conf.d
     restart: always
