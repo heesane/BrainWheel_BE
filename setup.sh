@@ -53,6 +53,8 @@ mv ~/Python_BrainWheel_BE/docker-compose.yml ~/
 # Grafana 권한 문제 해결
 sudo chown -R 472:472 Python_BrainWheel_BE/data/grafana
 
+sudo docker-compose up -d
+
 # NVM for Node.js Installation
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
 
@@ -62,7 +64,7 @@ cd Python_BrainWheel_BE/data/node
 source ~/.bashrc
 nvm install --lts
 nvm use --lts
-npm i express cors swagger-ui-express
+npm i express cors swagger-ui-express mysql body-parser
 cd ~
 
 # docker-compose Daemon으로 시작
