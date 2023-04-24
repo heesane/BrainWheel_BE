@@ -12,12 +12,17 @@ sed -i -e '122s/^#//' -e '123s/^#//' -e '125s/^#//' /etc/vsftpd.conf
 # vsftpd 서비스 재시작
 sudo systemctl restart vsftpd
 
+# docker 권한 추가
+sudo usermod -aG docker ubuntu
+
 # docker와 docker-compose 설치
 sudo apt install -y docker docker-compose
 # git clone 후, docker-compose를 ~/ 디렉토리로 이동
 mv ~/Python_BrainWheel/docker-compose.yml ~/
-# docker-compose Daemon으로 시작
-sudo docker-compose up -d
+
+# Grafana 권한 문제 해결
+sudo chown -R 472:472 Python_BrainWheel_BE/data/grafana
+
 
 # Docker container의 이름과 사용자 이름과 비밀번호 설정
 CONTAINER_NAME="mysql"
@@ -49,3 +54,15 @@ sudo docker exec -it influxdb influx -execute "
   GRANT ALL PRIVILEGES ON useful TO mid;
   exit;
 "
+
+# NVM for Node.js Installation
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
+source ~/.bashrc
+
+# NVM을 통해 Node.js LTS버전 설치 후 사용
+cd Python_BrainWheel_BE/data/node
+nvm install lts
+nvm use lts
+
+# docker-compose Daemon으로 시작
+sudo docker-compose up -d

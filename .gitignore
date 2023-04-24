@@ -1,3 +1,4 @@
-/back
-/.vscode
-/__pycache__
+/back/
+/.vscode/
+/__pycache__/
+/data/node/node_modules/
