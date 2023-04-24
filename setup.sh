@@ -40,51 +40,18 @@ else
     fi
 fi
 
-# docker 권한 추가
-sudo usermod -aG docker ubuntu
 
 # docker와 docker-compose 설치
 sudo apt install -y docker docker-compose
+
+# docker 권한 추가
+sudo usermod -aG docker ubuntu
 
 # git clone 후, docker-compose를 ~/ 디렉토리로 이동
 mv ~/Python_BrainWheel_BE/docker-compose.yml ~/
 
 # Grafana 권한 문제 해결
 sudo chown -R 472:472 Python_BrainWheel_BE/data/grafana
-
-
-# Docker container의 이름과 사용자 이름과 비밀번호 설정
-CONTAINER_NAME="mysql"
-LOGIN_PASSWORD="5499458kK@"
-USER_NAME="hhs1"
-USER_PASSWORD="hhs"
-DATABASE_NAME="test_db"
-
-# Docker container에서 MySQL에 접속하여 새로운 사용자 및 데이터베이스 생성
-mysql_query="CREATE USER '${USER_NAME}'@'%' IDENTIFIED WITH mysql_native_password BY '${USER_PASSWORD}'; \
-CREATE DATABASE ${DATABASE_NAME}; \
-USE test_db;
-CREATE TABLE users ( \
-  id int NOT NULL AUTO_INCREMENT, \
-  username varchar(255) NOT NULL, \
-  password varchar(255) NOT NULL, \
-  phone_number varchar(255) NOT NULL, \
-  Is_active tinyint(1) NOT NULL DEFAULT '1', \
-  PRIMARY KEY (id) \
-); \
-GRANT ALL PRIVILEGES ON ${DATABASE_NAME}.* TO '${USER_NAME}'@'%';"
-
-sudo docker exec -it ${CONTAINER_NAME} mysql -u root -p${LOGIN_PASSWORD} -e "${mysql_query}"
-
-# Docker container에서 InfluxDB에 접속하여 새로운 사용자 mid 및 데이터베이스 useful 생성
-sudo docker exec -it influxdb influx
-
-# SQL문
-CREATE USER mid5 WITH PASSWORD 'mid';
-CREATE DATABASE useful;
-USE useful;
-GRANT ALL PRIVILEGES ON useful TO mid5;
-exit
 
 # NVM for Node.js Installation
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
@@ -99,4 +66,42 @@ npm i express cors swagger-ui-express
 cd ~
 
 # docker-compose Daemon으로 시작
-sudo docker-compose up -d
+sudo docker-compose restart
+
+#-------------------------------------------------------#
+# sudo docker-compose up -d
+
+# Docker container의 이름과 사용자 이름과 비밀번호 설정
+# CONTAINER_NAME="mysql"
+# LOGIN_PASSWORD="5499458kK@"
+# USER_NAME="hhs1"
+# USER_PASSWORD="hhs"
+# DATABASE_NAME="test_db"
+
+# Docker container에서 MySQL에 접속하여 새로운 사용자 및 데이터베이스 생성
+# mysql_query="CREATE USER '${USER_NAME}'@'%' IDENTIFIED WITH mysql_native_password BY '${USER_PASSWORD}'; \
+# CREATE DATABASE ${DATABASE_NAME}; \
+# USE test_db;
+# CREATE TABLE users ( \
+#   id int NOT NULL AUTO_INCREMENT, \
+#   username varchar(255) NOT NULL, \
+#   password varchar(255) NOT NULL, \
+#   phone_number varchar(255) NOT NULL, \
+#   Is_active tinyint(1) NOT NULL DEFAULT '1', \
+#   PRIMARY KEY (id) \
+# ); \
+# GRANT ALL PRIVILEGES ON ${DATABASE_NAME}.* TO '${USER_NAME}'@'%';"
+
+# sudo docker exec -it ${CONTAINER_NAME} mysql -u root -p${LOGIN_PASSWORD} -e "${mysql_query}"
+
+# Docker container에서 InfluxDB에 접속하여 새로운 사용자 mid 및 데이터베이스 useful 생성
+# sudo docker exec -it influxdb influx
+
+# SQL문
+# CREATE USER mid5 WITH PASSWORD 'mid';
+# CREATE DATABASE useful;
+# USE useful;
+# GRANT ALL PRIVILEGES ON useful TO mid5;
+# exit
+
+
