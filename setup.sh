@@ -8,7 +8,7 @@ sudo apt-get install -y vsftpd
 sudo echo "ubuntu" >> /etc/ftpusers
 
 # /etc/vsftpd.conf에서  sftp_server부분 주석 해제
-sed -i -e '122s/^#//' -e '123s/^#//' -e '125s/^#//' /etc/vsftpd.conf
+sudo sed -i -e '122s/^#//' -e '123s/^#//' -e '125s/^#//' /etc/vsftpd.conf
 # vsftpd 서비스 재시작
 sudo systemctl restart vsftpd
 

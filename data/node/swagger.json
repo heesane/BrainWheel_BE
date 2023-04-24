@@ -1,0 +1,44 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Node.JS API",
+    "description": "API"
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Get a list of users.",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of users.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
