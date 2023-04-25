@@ -51,10 +51,13 @@ services:
     restart: always
     
   fastapi:
-    build: './Python_BrainWheel_BE/data/python'
-    container_name: fastapi
+    build:
+      context: ./Python_BrainWheel_BE/data/python
+      dockerfile: Dockerfile
+    working_dir: /code
+    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    expose:
+      - 5000
     volumes:
-      - '~/Python_BrainWheel_BE/data/python:/app'
-    ports:
-      - "5000:5000"
+      - ./Python_BrainWheel_BE/data/python:/code
     restart: always
