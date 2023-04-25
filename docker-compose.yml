@@ -49,3 +49,12 @@ services:
     working_dir: '/app'
     command: 'npm start'
     restart: always
+    
+  fastapi:
+    build: './Python_BrainWheel_BE/data/python'
+    container_name: fastapi
+    volumes:
+      - '~/Python_BrainWheel_BE/data/python:/app'
+    ports:
+      - "5000:5000"
+    restart: always

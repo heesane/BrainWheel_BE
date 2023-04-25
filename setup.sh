@@ -42,10 +42,17 @@ fi
 
 
 # docker와 docker-compose 설치
-sudo apt install -y docker docker-compose
+sudo apt install docker -y
 
 # docker 권한 추가
 sudo usermod -aG docker ubuntu
+
+# docker 재시작
+sudo systemctl restart containerd
+sudo systemctl restart docker.service
+
+# docker compose 설치
+sudo apt install docker-compose -y
 
 # git clone 후, docker-compose를 ~/ 디렉토리로 이동
 mv ~/Python_BrainWheel_BE/docker-compose.yml ~/
@@ -53,6 +60,7 @@ mv ~/Python_BrainWheel_BE/docker-compose.yml ~/
 # Grafana 권한 문제 해결
 sudo chown -R 472:472 Python_BrainWheel_BE/data/grafana
 
+# Docker-Compose
 sudo docker-compose up -d
 
 # NVM for Node.js Installation
@@ -62,6 +70,11 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
 # NVM을 통해 Node.js LTS버전 설치 후 사용
 cd Python_BrainWheel_BE/data/node
 source ~/.bashrc
+
+# 원활하게 사용하기 위해 Reboot 진행
+sudo reboot && echo "System Restarting..."
+
+# node LTS버전 설치 
 nvm install --lts
 nvm use --lts
 npm i express cors swagger-ui-express mysql body-parser
