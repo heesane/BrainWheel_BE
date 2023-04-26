@@ -71,9 +71,6 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash
 cd Python_BrainWheel_BE/data/node
 source ~/.bashrc
 
-# 원활하게 사용하기 위해 Reboot 진행
-sudo reboot && echo "System Restarting..."
-
 # node LTS버전 설치 
 nvm install --lts
 nvm use --lts

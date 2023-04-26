@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   influxdb:
     image: influxdb:1.8
@@ -6,11 +6,11 @@ services:
     ports:
       - "8086:8086"
     env_file:
-      - 'Python_BrainWheel_BE/data/influxdb/env.influxdb'
+      - "Python_BrainWheel_BE/data/influxdb/env.influxdb"
     volumes:
       # Data persistency
-      - './Python_BrainWheel_BE/data/influxdb/data:/root/.influxdb'
-      - './Python_BrainWheel_BE/data/influxdb/etc:/etc/influxdb/:ro'
+      - "./Python_BrainWheel_BE/data/influxdb/data:/root/.influxdb"
+      - "./Python_BrainWheel_BE/data/influxdb/etc:/etc/influxdb/:ro"
     restart: always
 
   grafana:
@@ -19,9 +19,9 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - 'Python_BrainWheel_BE/data/grafana/env.grafana'
+      - "Python_BrainWheel_BE/data/grafana/env.grafana"
     volumes:
-      - './Python_BrainWheel_BE/data/grafana:/var/lib/grafana'
+      - "./Python_BrainWheel_BE/data/grafana:/var/lib/grafana"
     links:
       - influxdb
     restart: always
@@ -31,25 +31,29 @@ services:
     container_name: mysql
     ports:
       - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --bind-address=0.0.0.0
     env_file:
-      - 'Python_BrainWheel_BE/data/mysql/env.mysql'
+      - "Python_BrainWheel_BE/data/mysql/env.mysql"
     volumes:
-      - './Python_BrainWheel_BE/data/mysql/data:/var/lib/mysql'
-      - './Python_BrainWheel_BE/data/mysql/etc:/etc/mysql/conf.d'
+      - "./Python_BrainWheel_BE/data/mysql/data:/var/lib/mysql"
+      - "./Python_BrainWheel_BE/data/mysql/etc:/etc/mysql/conf.d"
     restart: always
 
   node:
     image: node:lts
     container_name: node
     ports:
-      - '3001:3001'
-      - '80:80'
+      - "3001:3001"
+      - "80:80"
     volumes:
-      - './Python_BrainWheel_BE/data/node:/app'
-    working_dir: '/app'
-    command: 'npm start'
+      - "./Python_BrainWheel_BE/data/node:/app"
+    working_dir: "/app"
+    command: "npm start"
     restart: always
-    
+
   fastapi:
     build:
       context: ./Python_BrainWheel_BE/data/python
