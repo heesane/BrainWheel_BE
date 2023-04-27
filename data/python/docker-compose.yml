@@ -3,10 +3,11 @@ version: "3"
 services:
   web:
     build: . # build by Dockerfile in current dir.
-    working_dir: /code
+    working_dir: /code 
     command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
     ports:
       - "5000:5000"
     volumes:
       - ./app:/code
     restart: always
+
