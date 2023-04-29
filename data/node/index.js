@@ -10,6 +10,6 @@ app.get('/',(req,res)=>{
   res.send("Hello");
 });
 
-app.listen(3001, () => {
-  console.log('Example app listening on port 3001!');
+app.listen(80, () => {
+  console.log('Example app listening on port 80!');
 });
