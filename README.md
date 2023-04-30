@@ -1,5 +1,16 @@
 <h1>순서도</h1>
 
+## Server Side 
+-------
+![BW_Server](https://user-images.githubusercontent.com/93089183/235358812-dc02065a-7cb3-4d86-b543-f0ec028b64fc.JPG)
+
+## Device Side
+-------
+![BW_Device](https://user-images.githubusercontent.com/93089183/235358796-c220808d-cc96-4ec1-8c35-824b70559fa0.JPG)
+
+
+
+
 Configure_h5 : h5 file을 기반으로 현재의 데이터의 정확도 판단
 
 Generate_h5 : csv파일을 기반으로 h5 file을 생성한다
