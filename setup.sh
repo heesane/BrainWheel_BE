@@ -55,10 +55,10 @@ sudo systemctl restart docker.service
 sudo apt install docker-compose -y
 
 # git clone 후, docker-compose를 ~/ 디렉토리로 이동
-cp ~/Python_BrainWheel_BE/docker-compose.yml ~/
+cp ~/BrainWheel_BE/docker-compose.yml ~/
 
 # Grafana 권한 문제 해결
-sudo chown -R 472:472 Python_BrainWheel_BE/data/grafana
+sudo chown -R 472:472 BrainWheel_BE/data/grafana
 
 # Docker-Compose
 sudo docker-compose up -d
