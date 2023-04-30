@@ -1,7 +1,6 @@
 <h1>순서도</h1>
 
-Configure_h5 : h5 file을 기반으로 현재의
-데이터의 정확도 판단
+Configure_h5 : h5 file을 기반으로 현재의 데이터의 정확도 판단
 
 Generate_h5 : csv파일을 기반으로 h5 file을 생성한다
 
