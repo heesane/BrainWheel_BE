@@ -21,10 +21,12 @@ from influxdb import client as influxdb
 import pymysql
 from pydantic import BaseModel
 
-# SFTP Protocol Loacl -> Raspberry PI
-from learn_transmit.transmit import sftp_upload
+# SFTP Protocol Server -> Raspberry PI
+from tool.send import sftp_upload
+
 # Make Training Model
-from learn_transmit.learn import train_model
+from tool.LearnFromCsv import train_model
+
 
 IP = "3.216.219.9"
 def login_mysql():
