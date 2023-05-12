@@ -17,6 +17,7 @@
 
 from typing import Optional
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from influxdb import client as influxdb
 import pymysql
 from pydantic import BaseModel
@@ -27,6 +28,8 @@ from tool.send import sftp_upload
 # Make Training Model
 from tool.LearnFromCsv import train_model
 
+# Temp Total
+from tool.temp_total import write_to_influxdb, export_to_csv, get_local_ip_address,train_model
 
 IP = "3.216.219.9"
 def login_mysql():
@@ -49,11 +52,11 @@ class UserInfo(BaseModel):
     password: str = None
     is_active: int = None
     phone_number: str = None
-    
+
     
 app = FastAPI()
 
-# inf_db = influxdb.InfluxDBClient(IP,8086,'mid','mid','useful')
+inf_db = influxdb.InfluxDBClient(IP,8086,'mid','mid','useful')
 users = []
 
 # mainpage
@@ -61,6 +64,8 @@ users = []
 async def mainpage():
     return "Hello"
 
+###########################################################
+###################사용자 관련 API##########################
 # 모든 사용자 조회 API
 @app.get("/users")
 async def get_all_users():
@@ -83,7 +88,7 @@ async def get_all_users():
 
 # 사용자 생성 함수
 @app.post("/users")
-def create_user(user:UserInfo):
+async def create_user(user:UserInfo):
     conn = login_mysql()
     cursor = conn.cursor()
     insert_query = "INSERT INTO users (username, password, is_active, phone_number) VALUES (%s, %s, %s, %s)"
@@ -94,7 +99,7 @@ def create_user(user:UserInfo):
 
 # 사용자 조회 함수
 @app.get("/users/{user_id}")
-def get_user(user_id: int):
+async def get_user(user_id: int):
     conn = login_mysql()
     cursor = conn.cursor()
     select_query = "SELECT * FROM users WHERE id = %s"
@@ -115,7 +120,7 @@ def get_user(user_id: int):
 
 # 사용자 업데이트 함수
 @app.put("/users/{user_id}")
-def update_user(user_id: int, user: UserInfo):
+async def update_user(user_id: int, user: UserInfo):
     conn = login_mysql()
     cursor = conn.cursor()
     update_query = "UPDATE users SET "
@@ -141,7 +146,7 @@ def update_user(user_id: int, user: UserInfo):
 
 # 사용자 삭제 함수
 @app.delete("/users/{user_id}")
-def delete_user(user_id: int):
+async def delete_user(user_id: int):
     conn = login_mysql()
     cursor = conn.cursor()
     delete_query = "DELETE FROM users WHERE id = %s"
@@ -150,3 +155,41 @@ def delete_user(user_id: int):
     conn.close()
     return {"message": "UserInfo deleted successfully"}
 
+###########################################################
+######################데이터 관련 API#######################
+# Flag 수신 처리 함수
+@app.get("/flag/{user_id}")
+async def ReceiveFlag(user_id: int, flag: str):
+    if flag == "InfluxdbTransferSuccess":
+        
+    elif flag == "InfluxdbTransferFail":
+        
+    elif flag == "":
+    
+    elif flag == "":
+    
+    else:
+        return {"message": "Flag Error"}
+
+# h5 파일 다운로드 함수
+@app.get("/download/{user_id}")
+async def download_h5(user_id: str):
+    file_path = "tool/h5_file/" + str(user_id) + ".h5"
+    return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
+
+# Local에서 파일 전송을 완료했는지 확인하는 함수
+@app.get("/check/{user_id}/{flag}")
+async def check_flag(user_id: int, flag: str):
+    if flag == "True":
+        return {"message": "File Upload Success"}
+    else:
+        return {"message": "File Upload Fail"}
+
+# h5 생성 완료 플래그 전송 함수
+@app.get("/h5flag/{user_id}/{flag}")
+async def send_flag(user_id: int,flag:str):
+    if flag == "True":
+        return {"flag": "h5 file upload success"}
+    else:
+        
+  
