@@ -18,7 +18,8 @@ def export_to_csv(IP, database, username, password, measurement, max_data_count=
 
         # InfluxDB에서 데이터 삭제
         inf_db.query('DELETE FROM %s LIMIT %s' % measurement,max_data_count)
+        return True
     except influxdb.exceptions.InfluxDBClientError:
-        print("연결 에러")
+        return False
     except IOError:
-        print("저장 에러")
+        return False

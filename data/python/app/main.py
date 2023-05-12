@@ -3,15 +3,15 @@
 # 3. user별로 새로운 table 생성 -> DB에 어느정도의 부하?
 # 4. 서버에서 인공지능 프로그램 실행
 # Describe Table
-# +--------------+--------------+------+-----+---------+----------------+
-# | Field        | Type         | Null | Key | Default | Extra          |
-# +--------------+--------------+------+-----+---------+----------------+
-# | id           | int          | NO   | PRI | NULL    | auto_increment |
-# | username     | varchar(255) | NO   |     | NULL    |                |
-# | password     | varchar(255) | NO   |     | NULL    |                |
-# | Is_active    | tinyint(1)   | NO   |     | 1       |                |
-# | phone_number | varchar(255) | NO   |     | NULL    |                |
-# +--------------+--------------+------+-----+---------+----------------+
+# +--------------------+--------------+------+-----+---------+----------------+
+# | Field              | Type         | Null | Key | Default | Extra          |
+# +--------------------+--------------+------+-----+---------+----------------+
+# | id                 | int          | NO   | PRI | NULL    | auto_increment |
+# | username           | varchar(255) | NO   |     | NULL    |                |
+# | password           | varchar(255) | NO   |     | NULL    |                |
+# | target_accurate    | int(1)       | NO   |     | 80      |                |
+# | phone_number       | varchar(255) | NO   |     | NULL    |                |
+# +--------------------+--------------+------+-----+---------+----------------+
 
 # 04.21수정 사항 CRUD 구현
 
@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse
 from influxdb import client as influxdb
 import pymysql
 from pydantic import BaseModel
+import tool
 
 # SFTP Protocol Server -> Raspberry PI
 from tool.send import sftp_upload
@@ -35,9 +36,9 @@ IP = "3.216.219.9"
 def login_mysql():
     conn = pymysql.connect(host = IP,
                      port=3306,
-                     user='hhs',
-                     passwd='hhs',
-                     db='test_db',
+                     user='admin',
+                     passwd='admin',
+                     db='userinfo',
                      charset='utf8',
                      autocommit=True)
 
@@ -50,19 +51,18 @@ def login_mysql():
 class UserInfo(BaseModel):
     username: str = None
     password: str = None
-    is_active: int = None
-    phone_number: str = None
+    target_accurate: int = None
 
     
 app = FastAPI()
 
-inf_db = influxdb.InfluxDBClient(IP,8086,'mid','mid','useful')
+inf_db = influxdb.InfluxDBClient(IP,8086,'admin','admin','data')
 users = []
 
 # mainpage
 @app.get("/")
 async def mainpage():
-    return "Hello"
+    return "BrainWheel Backend API Server"
 
 ###########################################################
 ###################사용자 관련 API##########################
@@ -91,8 +91,8 @@ async def get_all_users():
 async def create_user(user:UserInfo):
     conn = login_mysql()
     cursor = conn.cursor()
-    insert_query = "INSERT INTO users (username, password, is_active, phone_number) VALUES (%s, %s, %s, %s)"
-    cursor.execute(insert_query, (user.username, user.password, user.is_active, user.phone_number))
+    insert_query = "INSERT INTO users (username, password, target_accurate) VALUES (%s, %s, %d,)"
+    cursor.execute(insert_query, (user.username, user.password, user.target_accurate))
     conn.commit()
     conn.close()
     return {"message": "UserInfo created successfully"}
@@ -111,8 +111,8 @@ async def get_user(user_id: int):
             "id": result[0],
             "username": result[1],
             "password": result[2],
-            "is_active": result[3],
-            "phone_number": result[4]
+            "target_accurate": result[3],
+            
         }
         return user
     else:
@@ -131,12 +131,10 @@ async def update_user(user_id: int, user: UserInfo):
     if user.password is not None:
         update_query += "password = %s, "
         update_values.append(user.password)
-    if user.is_active is not None:
-        update_query += "is_active = %s, "
-        update_values.append(user.is_active)
-    if user.phone_number is not None:
-        update_query += "phone_number = %s, "
-        update_values.append(user.phone_number)
+    if user.target_accurate is not None:
+        update_query += "target_accurate = %d, "
+        update_values.append(user.target_accurate)
+    
     update_query = update_query[:-2] + " WHERE id = %s"
     update_values.append(user_id)
     cursor.execute(update_query, update_values)
@@ -158,38 +156,33 @@ async def delete_user(user_id: int):
 ###########################################################
 ######################데이터 관련 API#######################
 # Flag 수신 처리 함수
-@app.get("/flag/{user_id}")
-async def ReceiveFlag(user_id: int, flag: str):
-    if flag == "InfluxdbTransferSuccess":
-        
-    elif flag == "InfluxdbTransferFail":
-        
-    elif flag == "":
+@app.get("/flag/{user_name}")
+async def ReceiveFlag(user_name: int, flag: str):
+    # Flag: inf_success -> csv_success -> h5_success
+    if flag == "inf_success":
+        while tool.MakeCsv.export_to_csv(IP, 'userinfo', 'admin', 'admin', user_name, 425) != True:
+            continue
+        csv_flag =True
+        return {"flag": "Make CSV Success"}
     
-    elif flag == "":
-    
-    else:
-        return {"message": "Flag Error"}
-
+    elif flag == "csv_success":
+        while tool.LearnFromCsv.train_model(user_name) != True:
+            continue
+        h5_flag = True
+        return {"flag": "Make H5 Success"}
+        
 # h5 파일 다운로드 함수
 @app.get("/download/{user_id}")
 async def download_h5(user_id: str):
     file_path = "tool/h5_file/" + str(user_id) + ".h5"
     return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
 
-# Local에서 파일 전송을 완료했는지 확인하는 함수
-@app.get("/check/{user_id}/{flag}")
-async def check_flag(user_id: int, flag: str):
-    if flag == "True":
-        return {"message": "File Upload Success"}
-    else:
-        return {"message": "File Upload Fail"}
-
-# h5 생성 완료 플래그 전송 함수
-@app.get("/h5flag/{user_id}/{flag}")
-async def send_flag(user_id: int,flag:str):
-    if flag == "True":
-        return {"flag": "h5 file upload success"}
-    else:
-        
-  
+# 성공 여부 저장
+@app.post("/end/{user_name}/success")
+async def end_success(user_name: str):
+    conn = login_mysql()
+    cur = conn.cursor()
+    sql = """UPDATE `userinfo`.`users` SET `flag` = '1' WHERE (`username` = %s);"""
+    conn.execute(sql, user_name)
+    conn.commit()
+    conn.close()

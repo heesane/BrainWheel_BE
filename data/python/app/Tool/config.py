@@ -55,7 +55,7 @@ download_url= f"http://{IP}:{PORT}/download/{user}"
 ## Input User Info
 # Input: None
 # Return: user_info (list), user (str), passwd (str), target_accurate (int)
-def InputUserInfo():
+def init():
     global user_info,user,passwd,target_accurate
     user_info.append(input("ID: "))
     user_info.append(input("Passwd: "))
@@ -85,7 +85,7 @@ def login_infdb():
 
 ## BrainWave Data Measure 
 # Input: cnt (int)
-# Return: Boc (list)
+# Return: Box (list)
 def measure(cnt:int):
     box = []
     for i in range(cnt):
@@ -129,6 +129,7 @@ def write_to_influxdb(max_data_count=425):
         print("연결 에러")
         return False
 
+# h5파일을 다운받는 함수
 def FlagCheckAndDownload():
     while True:
         CsvResponse = requests.get(csv_url)
