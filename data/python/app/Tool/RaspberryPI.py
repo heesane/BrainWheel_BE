@@ -30,18 +30,19 @@ sql_PORT = 3306
 
 # MySQL Variable
 ## database
-mysql_database = "test_db"
+mysql_database = "userinfo"
 ## table
 mysql_table = "users"
 
 # InfluxDB Variable
 ## database
-inf_database = "data"
+inf_database = "users"
 ## measurement
 inf_measurement = "mid"
 
 # Request URL
 fixed_url =  f"http://{IP}:{PORT}/"
+user_url = fixed_url + "users?user={user}&passwd={passwd}&target_accurate={target_accurate}"
 csv_url = fixed_url + "flag/{user}?flag=csv_success" 
 flag_url = fixed_url + "flag/{user}?flag=h5_success"
 download_url= fixed_url + "download/{user}"
@@ -55,7 +56,7 @@ flag = False
 # Input: None
 # Return: user_info (list), user (str), passwd (str), target_accurate (int)
 def init():
-    
+    global inf_measurement
     # User Variable
     user_info = []
     user = ""
@@ -65,9 +66,13 @@ def init():
     user_info.append(input("ID: "))
     user_info.append(input("Passwd: "))
     user_info.append(int(input("Target Accurate: ")))
-    user = user_info[0]
+    inf_measurement,user = user_info[0],user_info[0]
     passwd = user_info[1]
     target_accurate = user_info[2]
+    init_req = requests.post(user_url.format(user=user,passwd=passwd,target_accurate=target_accurate))
+    if init_req.status_code != 200:
+        print(f"Failed to send GET request for user info. Response status code: {init_req.status_code}")
+        return False
     return user_info,user,passwd,target_accurate
 
 ## Login MySQL
@@ -84,8 +89,9 @@ def login_mysql():
     return conn
 
 ## Login InfluxDB
-def login_infdb():
-    inf_db = influxdb(IP, inf_PORT, my_name, my_password, inf_database)
+def login_infdb(my_name:str,my_password:str):
+    global user_info
+    inf_db = influxdb(IP, inf_PORT, user_info[0], user_info[0], inf_database)
     return inf_db
 
 ## BrainWave Data Measure 
@@ -93,7 +99,7 @@ def login_infdb():
 # Return: Box (list)
 def measure(cnt:int):
     box = []
-    for i in range(cnt):
+    for _ in range(cnt):
         box.append(adc.read_adc(0, gain=GAIN, data_rate=860))
     return box
 
@@ -116,14 +122,10 @@ def SendInfoToSQL(data:list):
         
 # InfluxDB에 데이터 저장
 def write_to_influxdb(username:str,max_data_count:int =425):
-    global user
     inf_db = login_infdb()
     data_box = [
         {
             "measurement": username,
-            "tags": {
-                "name": username
-            },
             "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
             "fields": {
                 "value": measure(max_data_count)
@@ -193,6 +195,7 @@ while True:
     my_info,my_name,my_password,target_accurate = init()
     
     if SendInfoToSQL(my_info) != True:
+        print("MySQL에 데이터 저장 실패")
         continue
 
     if write_to_influxdb(my_name) != True:
@@ -210,31 +213,29 @@ while True:
     model = keras.models.load_model(f"./h5_file/{my_name}.h5")
 
     while flag == True:
-    # h5파일을 불러옴
-    
-    # 425개의 데이터를 측정
-    data = measure(425)
-    # 425개의 데이터를 2차원 배열로 변환
-    data = np.array(data).reshape(1,-1)
-    # 데이터를 표준화
-    scaler = StandardScaler()
-    scaler.fit(data)
-    data = scaler.transform(data)
-    # 데이터를 예측
-    result = model.predict(data)
-    # 예측한 데이터를 0~100사이의 정수로 변환
-    result = int(result[0][0]*100)
-    # 예측한 데이터를 서버로 전송
-    requests.post(f"http://{IP}:{PORT}/result/{my_name}/{result}")
-    # 예측한 데이터를 출력
-    print(result)
-    # 예측한 데이터가 목표치보다 높으면 종료
-    if result > target_accurate:
-        print("Success!")
-        # 서버에 종료를 알림
-        requests.post(f"http://{IP}:{PORT}/end/{my_name}/success")
-        break
-    else:
-        print("Failed!")
-    # 1초마다 측정
-    time.sleep(1)
+                # 425개의 데이터를 측정
+        data = measure(425)
+        # 425개의 데이터를 2차원 배열로 변환
+        data = np.array(data).reshape(1,-1)
+        # 데이터를 표준화
+        scaler = StandardScaler()
+        scaler.fit(data)
+        data = scaler.transform(data)
+        # 데이터를 예측
+        result = model.predict(data)
+        # 예측한 데이터를 0~100사이의 정수로 변환
+        result = int(result[0][0]*100)
+        # 예측한 데이터를 서버로 전송
+        requests.post(f"http://{IP}:{PORT}/end/{my_name}/{result}")
+        # 예측한 데이터를 출력
+        print(result)
+        # 예측한 데이터가 목표치보다 높으면 종료
+        if result > target_accurate:
+            print("Success!")
+            # 서버에 종료를 알림
+            requests.post(f"http://{IP}:{PORT}/end/{my_name}/success")
+            break
+        else:
+            print("Failed!")
+        # 1초마다 측정
+        time.sleep(1)

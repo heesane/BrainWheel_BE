@@ -1,16 +1,16 @@
-# 1. 뇌파 측정기로 데이터를 읽음
-# 2. 해당 데이터를 influxdb로 보냄
-# 3. user별로 새로운 table 생성 -> DB에 어느정도의 부하?
-# 4. 서버에서 인공지능 프로그램 실행
+
 # Describe Table
 # +--------------------+--------------+------+-----+---------+----------------+
 # | Field              | Type         | Null | Key | Default | Extra          |
 # +--------------------+--------------+------+-----+---------+----------------+
 # | id                 | int          | NO   | PRI | NULL    | auto_increment |
+# | created_at         | datetime     | NO   |     | NULL    |                |
 # | username           | varchar(255) | NO   |     | NULL    |                |
 # | password           | varchar(255) | NO   |     | NULL    |                |
+# | result             | int(1)       | NO   |     | 0       |                |
 # | target_accurate    | int(1)       | NO   |     | 80      |                |
-# | phone_number       | varchar(255) | NO   |     | NULL    |                |
+# | flag               | int(1)       | NO   |     | 0       |                |
+# | activation         | boolean      | NO   |     | False   |                |
 # +--------------------+--------------+------+-----+---------+----------------+
 
 # 04.21수정 사항 CRUD 구현
@@ -95,6 +95,12 @@ async def create_user(user:UserInfo):
     cursor.execute(insert_query, (user.username, user.password, user.target_accurate))
     conn.commit()
     conn.close()
+    
+    inf_query = """CREATE USER %s WITH PASSWORD '%s';
+    GRANT ALL ON "users" TO %s;""" % (user.username, user.password)
+    inf_db.create_measurement(user.username)
+    inf_db.query(inf_query)
+    
     return {"message": "UserInfo created successfully"}
 
 # 사용자 조회 함수
@@ -174,7 +180,7 @@ async def ReceiveFlag(user_name: int, flag: str):
 # h5 파일 다운로드 함수
 @app.get("/download/{user_id}")
 async def download_h5(user_id: str):
-    file_path = "tool/h5_file/" + str(user_id) + ".h5"
+    file_path = "h5_file/" + str(user_id) + ".h5"
     return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
 
 # 성공 여부 저장
@@ -182,7 +188,17 @@ async def download_h5(user_id: str):
 async def end_success(user_name: str):
     conn = login_mysql()
     cur = conn.cursor()
-    sql = """UPDATE `userinfo`.`users` SET `flag` = '1' WHERE (`username` = %s);"""
+    sql = """UPDATE `userinfo`.`users` SET `flag` = '1', `activation` = `True` WHERE (`username` = %s);"""
     conn.execute(sql, user_name)
+    conn.commit()
+    conn.close()
+    
+# 정확도 측정 결과
+@app.post("/end/{user_name}/{result}")
+async def end_result(user_name: str, result: int):
+    conn = login_mysql()
+    cur = conn.cursor()
+    sql = """UPDATE `userinfo`.`users` SET `result` = %d WHERE (`username` = %s);"""
+    conn.execute(sql, result, user_name)
     conn.commit()
     conn.close()
