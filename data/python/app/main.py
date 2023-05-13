@@ -13,8 +13,6 @@
 # | activation         | boolean      | NO   |     | False   |                |
 # +--------------------+--------------+------+-----+---------+----------------+
 
-# 04.21수정 사항 CRUD 구현
-
 from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -28,9 +26,6 @@ from tool.send import sftp_upload
 
 # Make Training Model
 from tool.LearnFromCsv import train_model
-
-# Temp Total
-from tool.temp_total import write_to_influxdb, export_to_csv, get_local_ip_address,train_model
 
 IP = "3.216.219.9"
 def login_mysql():
@@ -91,7 +86,7 @@ async def get_all_users():
 async def create_user(user:UserInfo):
     conn = login_mysql()
     cursor = conn.cursor()
-    insert_query = "INSERT INTO users (username, password, target_accurate) VALUES (%s, %s, %d,)"
+    insert_query = "INSERT INTO users (username, password, target_accurate) VALUES (%s, %s, %s,)"
     cursor.execute(insert_query, (user.username, user.password, user.target_accurate))
     conn.commit()
     conn.close()
