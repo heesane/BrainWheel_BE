@@ -20,7 +20,7 @@ from influxdb import client as influxdb
 import pymysql
 from pydantic import BaseModel
 import tool
-
+import os
 # SFTP Protocol Server -> Raspberry PI
 from tool.send import sftp_upload
 
@@ -36,7 +36,6 @@ def login_mysql():
                      db='userinfo',
                      charset='utf8',
                      autocommit=True)
-
     return conn
 # Example
 # cursor.excute("SHOW TABLES;")
@@ -44,6 +43,7 @@ def login_mysql():
 # cursor.close()
 # 입력값 정의
 class UserInfo(BaseModel):
+    created_at: str = None
     username: str = None
     password: str = None
     target_accurate: int = None
@@ -51,7 +51,7 @@ class UserInfo(BaseModel):
     
 app = FastAPI()
 
-inf_db = influxdb.InfluxDBClient(IP,8086,'admin','admin','data')
+inf_db = influxdb.InfluxDBClient(IP,8086,'admin','admin','userinfo')
 users = []
 
 # mainpage
@@ -86,14 +86,23 @@ async def get_all_users():
 async def create_user(user:UserInfo):
     conn = login_mysql()
     cursor = conn.cursor()
-    insert_query = "INSERT INTO users (username, password, target_accurate) VALUES (%s, %s, %s,)"
-    cursor.execute(insert_query, (user.username, user.password, user.target_accurate))
+    
+    # mysql에 user 생성
+    register_query = "CREATE USER %s@'%%' IDENTIFIED BY %s;"
+    cursor.execute(register_query, (user.username, user.password))
+    
+    grant_query = "GRANT WRITE ON userinfo.users TO %s;"
+    cursor.execute(grant_query, user.username)
+    
+    insert_query = "INSERT INTO users (created_at, username, password, target_accurate) VALUES (%s, %s, %s, %s,)"
+    cursor.execute(insert_query, (user.created_at,user.username, user.password, user.target_accurate))
+    
     conn.commit()
     conn.close()
     
+    # influx에 user 생성
     inf_query = """CREATE USER %s WITH PASSWORD '%s';
-    GRANT ALL ON "users" TO %s;""" % (user.username, user.password)
-    inf_db.create_measurement(user.username)
+    GRANT WRITE ON user_value TO %s;""" % (user.username, user.password,user.username)
     inf_db.query(inf_query)
     
     return {"message": "UserInfo created successfully"}
@@ -110,10 +119,13 @@ async def get_user(user_id: int):
     if result:
         user = {
             "id": result[0],
-            "username": result[1],
-            "password": result[2],
-            "target_accurate": result[3],
-            
+            "created_at":result[1],
+            "username": result[2],
+            "password": result[3],
+            "result": result[4],
+            "target_accurate": result[5],
+            "flag": result[6],
+            "activation": result[7]
         }
         return user
     else:
@@ -161,7 +173,7 @@ async def delete_user(user_id: int):
 async def ReceiveFlag(user_name: int, flag: str):
     # Flag: inf_success -> csv_success -> h5_success
     if flag == "inf_success":
-        while tool.MakeCsv.export_to_csv(IP, 'userinfo', 'admin', 'admin', user_name, 425) != True:
+        while tool.MakeCsv.export_to_csv(IP, 'user', 'admin', 'admin', user_name, 425) != True:
             continue
         csv_flag =True
         return {"flag": "Make CSV Success"}
@@ -176,8 +188,11 @@ async def ReceiveFlag(user_name: int, flag: str):
 @app.get("/download/{user_id}")
 async def download_h5(user_id: str):
     file_path = "h5_file/" + str(user_id) + ".h5"
-    return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
-
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
+    else:
+        return {"message": "File not found."}
+    
 # 성공 여부 저장
 @app.post("/end/{user_name}/success")
 async def end_success(user_name: str):
@@ -187,7 +202,8 @@ async def end_success(user_name: str):
     conn.execute(sql, user_name)
     conn.commit()
     conn.close()
-    
+    return {"message": "You Can Use BrainWheel"}
+
 # 정확도 측정 결과
 @app.post("/end/{user_name}/{result}")
 async def end_result(user_name: str, result: int):
@@ -197,3 +213,4 @@ async def end_result(user_name: str, result: int):
     conn.execute(sql, result, user_name)
     conn.commit()
     conn.close()
+    return {"message": "Almost done"}

@@ -36,13 +36,14 @@ mysql_table = "users"
 
 # InfluxDB Variable
 ## database
-inf_database = "users"
+inf_database = "userinfo"
 ## measurement
 inf_measurement = "mid"
-
+part_box = ["left","center","right"]
+    
 # Request URL
 fixed_url =  f"http://{IP}:{PORT}/"
-user_url = fixed_url + "users?user={user}&passwd={passwd}&target_accurate={target_accurate}"
+user_url = fixed_url + "users?created_at ={created}&user={user}&passwd={passwd}&target_accurate={target_accurate}"
 csv_url = fixed_url + "flag/{user}?flag=csv_success" 
 flag_url = fixed_url + "flag/{user}?flag=h5_success"
 download_url= fixed_url + "download/{user}"
@@ -69,7 +70,9 @@ def init():
     inf_measurement,user = user_info[0],user_info[0]
     passwd = user_info[1]
     target_accurate = user_info[2]
-    init_req = requests.post(user_url.format(user=user,passwd=passwd,target_accurate=target_accurate))
+    now_time = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y-%m-%d %H:%M:%S")
+    # 가입
+    init_req = requests.post(user_url.format(created_at = now_time,user=user,passwd=passwd,target_accurate=target_accurate))
     if init_req.status_code != 200:
         print(f"Failed to send GET request for user info. Response status code: {init_req.status_code}")
         return False
@@ -89,10 +92,11 @@ def login_mysql():
     return conn
 
 ## Login InfluxDB
-def login_infdb(my_name:str,my_password:str):
+def login_infdb():
     global user_info
     inf_db = influxdb(IP, inf_PORT, user_info[0], user_info[0], inf_database)
     return inf_db
+
 
 ## BrainWave Data Measure 
 # Input: cnt (int)
@@ -121,12 +125,16 @@ def SendInfoToSQL(data:list):
         
         
 # InfluxDB에 데이터 저장
-def write_to_influxdb(username:str,max_data_count:int =425):
+def write_to_influxdb(part:str,username:str,max_data_count:int =425):
+    
     inf_db = login_infdb()
     data_box = [
         {
-            "measurement": username,
+            "measurement": part,
             "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "tags": {
+                "username": username
+            },
             "fields": {
                 "value": measure(max_data_count)
             }
@@ -197,10 +205,11 @@ while True:
     if SendInfoToSQL(my_info) != True:
         print("MySQL에 데이터 저장 실패")
         continue
-
-    if write_to_influxdb(my_name) != True:
-        print("InfluxDB에 데이터 저장 실패")
-        continue
+    
+    for part in part_box:
+        if write_to_influxdb(part,my_name) != True:
+            print("InfluxDB에 데이터 저장 실패")
+            continue
     
     req_data = requests.get(f"http://{IP}:{PORT}/flag/{my_name}?flag=inf_success")
     
@@ -209,11 +218,12 @@ while True:
         continue
     
     flag = True
-        
+    
+    # 학습된 모델을 불러옴
     model = keras.models.load_model(f"./h5_file/{my_name}.h5")
 
     while flag == True:
-                # 425개의 데이터를 측정
+        # 425개의 데이터를 측정
         data = measure(425)
         # 425개의 데이터를 2차원 배열로 변환
         data = np.array(data).reshape(1,-1)
