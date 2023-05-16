@@ -1,7 +1,7 @@
 from influxdb import client as influxdb
 import csv
 
-def export_to_csv(IP, database, username, password, measurement, max_data_count=1000):
+def make_csv(IP, database, username, password, measurement, max_data_count=1000):
     try:
         # InfluxDB 연결 설정
         inf_db = influxdb.InfluxDBClient(IP, 8086, username, password, database)

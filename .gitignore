@@ -1,4 +1,9 @@
-/back/
+/data/python/app/test_init
+/data/python/app/*/__pycache__
+/data/python/app/*/.vscode
+/data/python/app/__pycache__
+/data/python/app/.vscode
+/data/python/app/tool/__pycache__
 /.vscode/
 /__pycache__/
 /data/node/node_modules/

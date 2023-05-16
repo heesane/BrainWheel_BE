@@ -16,7 +16,7 @@ from learn_transmit.learn import train_model
 train_model("plus.csv","minus.csv","test_generated.h5")
 """
 
-def train_model(plus_csv_file_name, minus_csv_file_name, model_weights_file_name):
+def training(plus_csv_file_name, minus_csv_file_name, model_weights_file_name):
     local_path = os.path.dirname(os.path.abspath(__file__))
     csv_path = local_path + '/csv_folder/'
     

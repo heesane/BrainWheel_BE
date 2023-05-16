@@ -13,7 +13,7 @@ import numpy as np
 import pymysql
 import Adafruit_ADS1x15
 import datetime
-
+import urllib.parse
 #----------------------------global variable----------------------------#
 
 # Raspberry PI Variable
@@ -67,16 +67,28 @@ def init():
     user_info.append(input("ID: "))
     user_info.append(input("Passwd: "))
     user_info.append(int(input("Target Accurate: ")))
+    
     inf_measurement,user = user_info[0],user_info[0]
     passwd = user_info[1]
     target_accurate = user_info[2]
+    
     now_time = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y-%m-%d %H:%M:%S")
+    created_at = urllib.parse.quote(now_time)
+    user_url = f"{fixed_url}users"
     # 가입
-    init_req = requests.post(user_url.format(created_at = now_time,user=user,passwd=passwd,target_accurate=target_accurate))
-    if init_req.status_code != 200:
+    init_req = requests.post(url=user_url,json={
+        "created_at":created_at,
+        "user":user,
+        "passwd":passwd,
+        "target_accurate":target_accurate
+    })
+    if init_req.status_code == 200:
+        print("Success to send GET request for user info")
+        return user_info,user,passwd,target_accurate
+    else:
         print(f"Failed to send GET request for user info. Response status code: {init_req.status_code}")
         return False
-    return user_info,user,passwd,target_accurate
+    
 
 ## Login MySQL
 def login_mysql():
@@ -236,14 +248,16 @@ while True:
         # 예측한 데이터를 0~100사이의 정수로 변환
         result = int(result[0][0]*100)
         # 예측한 데이터를 서버로 전송
-        requests.post(f"http://{IP}:{PORT}/end/{my_name}/{result}")
+        end_url = f"http://{IP}:{PORT}/end"
+        
+        requests.post(url=end_url,json={"name":my_name,"result":result})
         # 예측한 데이터를 출력
         print(result)
         # 예측한 데이터가 목표치보다 높으면 종료
         if result > target_accurate:
             print("Success!")
             # 서버에 종료를 알림
-            requests.post(f"http://{IP}:{PORT}/end/{my_name}/success")
+            requests.get(f"http://{IP}:{PORT}/end/{my_name}/success")
             break
         else:
             print("Failed!")
