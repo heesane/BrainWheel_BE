@@ -50,11 +50,11 @@ services:
     command: 'npm start'
     restart: always
     
-  web:
+  api:
     build:
       context: ./BrainWheel_BE/data/python
       dockerfile: Dockerfile
-    container_name: web
+    container_name: api
     working_dir: /code
     command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
     ports:
