@@ -1,5 +1,5 @@
-import user
-import restaurant
+from .user import router as user
+from .restaurant import router as restaurant
 
-user_router = user.router
-restaurant_router = restaurant.router
+user_router = user
+restaurant_router = restaurant

@@ -1,7 +1,6 @@
-import user
-import restaurant
+from . import user, restaurant
 
-UserInfo = user.UserInfo
+User = user.UserInfo
 Food = restaurant.Food
 Ingredient = restaurant.Ingredient
 Table = restaurant.Table

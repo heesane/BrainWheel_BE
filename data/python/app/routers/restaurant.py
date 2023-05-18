@@ -23,7 +23,6 @@ router.include_router(food_router)
 router.include_router(ingredient_router)
 router.include_router(table_router)
 
-@
 @router.get("/")
 async def restaurant_mainpage():
     return "Restaurant Router"
