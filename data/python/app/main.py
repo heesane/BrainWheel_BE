@@ -11,15 +11,16 @@ from datetime import datetime
 # My Module
 import tool
 from tool import inf_db, login_admin_mysql,make_csv,training
-from models import UserInfo
-from routers import user_router
+from models import UserInfo, Food
+from routers import user_router, restaurant_router
 
 inf_db = inf_db
 
 app = FastAPI()
 
 # user router
-app.include_router(user_router, prefix="/user",tags=["user"])
+app.include_router(user_router)
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -27,6 +28,14 @@ async def log_requests(request: Request, call_next):
     method = request.method
     url = request.url
     client_ip = request.client.host
+    if url == "http://127.0.0.1:5000/restaurants/register":
+        conn = login_admin_mysql()
+        cur = conn.cursor()
+        sql = """INSERT INTO client.info (ip) VALUES(%s);"""
+        conn.execute(sql, client_ip)
+        conn.commit()
+        conn.close()
+    
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # 로그 메시지 생성
@@ -93,3 +102,4 @@ async def end_result(user_name: str, result: int):
     conn.commit()
     conn.close()
     return {"message": "Almost done"}
+

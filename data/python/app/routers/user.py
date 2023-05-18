@@ -27,7 +27,7 @@ import tool
 
 
 
-router = APIRouter()
+router = APIRouter(prefix="/user", tags=["user"])
 
 inf_db = tool.inf_db
 

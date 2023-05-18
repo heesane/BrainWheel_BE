@@ -43,7 +43,6 @@ services:
     container_name: node
     ports:
       - '3001:3001'
-      - '80:80'
     volumes:
       - './BrainWheel_BE/data/node:/app'
     working_dir: '/app'

@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from influxdb import client as influxdb
 
-import config
+from . import config
 
 IP = config.IP
 
