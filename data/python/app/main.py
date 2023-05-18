@@ -11,15 +11,13 @@ from datetime import datetime
 # My Module
 import tool
 from tool import inf_db, login_admin_mysql,make_csv,training
-from models import UserInfo, Food
-from routers import user_router, restaurant_router
-
+import routers
 inf_db = inf_db
 
 app = FastAPI()
 
 # user router
-app.include_router(user_router)
+app.include_router(routers.user_router)
 
 
 @app.middleware("http")

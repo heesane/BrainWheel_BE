@@ -13,9 +13,9 @@ import datetime
 import models
 import tool
 
-from food import router as food_router
-from ingredient import router as ingredient_router
-from table import router as table_router
+from .food import router as food_router
+from .ingredient import router as ingredient_router
+from .table import router as table_router
 
 router = APIRouter(prefix="/restaurant", tags=["restaurant"])
 

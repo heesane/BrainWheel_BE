@@ -22,10 +22,10 @@ import os
 import datetime
 
 
-from models import UserInfo
+from routers import models
 import tool
 
-
+UserInfo = models.User
 
 router = APIRouter(prefix="/user", tags=["user"])
 

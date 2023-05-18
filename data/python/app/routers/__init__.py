@@ -1,3 +1,5 @@
+import models as models
+
 from .user import router as user
 from .restaurant import router as restaurant
 
