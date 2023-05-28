@@ -1,7 +1,6 @@
 import models as models
-
 from .user import router as user
-from .restaurant import router as restaurant
+from .task import router as task
 
 user_router = user
-restaurant_router = restaurant
+task_router = task

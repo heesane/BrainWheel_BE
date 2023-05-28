@@ -1,24 +1,35 @@
-# pip install ~~
-from typing import Optional
 from fastapi import FastAPI,Request
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-from influxdb import client as influxdb
-import pymysql
+from starlette.responses import FileResponse
+from starlette.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 import os
+
 from datetime import datetime
 
-# My Module
-import tool
-from tool import inf_db, login_admin_mysql,make_csv,training
+
 import routers
-inf_db = inf_db
 
-app = FastAPI()
+# CORS URL 설정
+origins = [
+    "http://*:80",
+    "http://*:443",
+]
 
-# user router
-app.include_router(routers.user_router)
+# FastAPI 객체 생성
+app = FastAPI(
+    title = "BrainWheel Backend API Server",
+    description = "BrainWheel Backend API Server",
+    version = "1.0.0"
+)
 
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -26,13 +37,6 @@ async def log_requests(request: Request, call_next):
     method = request.method
     url = request.url
     client_ip = request.client.host
-    if url == "http://127.0.0.1:5000/restaurants/register":
-        conn = login_admin_mysql()
-        cur = conn.cursor()
-        sql = """INSERT INTO client.info (ip) VALUES(%s);"""
-        conn.execute(sql, client_ip)
-        conn.commit()
-        conn.close()
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -46,58 +50,16 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# user router
+app.include_router(routers.user_router)
+app.include_router(routers.task_router)
+
+app.mount("/assets", StaticFiles(directory="front/dist/assets"))
+
+
+
 # mainpage
 @app.get("/")
 async def mainpage():
-    return "BrainWheel Backend API Server"
-
-# Flag 수신 처리 함수
-@app.get("/flag/{user_name}")
-async def ReceiveFlag(user_name: str, flag: str):
-    # Flag: inf_success -> csv_success -> h5_success
-    if flag == "inf_success":
-        while make_csv(user_name) != True:
-            continue
-        csv_flag =True
-        return {"flag": "Make CSV Success"}
-    
-    elif flag == "csv_success":
-        first_csv = user_name + "_first.csv"
-        second_csv = user_name + "_second.csv"
-        weight_file = user_name + ".h5"
-        while training(first_csv,second_csv,weight_file) != True:
-            continue
-        h5_flag = True
-        return {"flag": "Make H5 Success"}
-
-# h5 파일 다운로드 함수
-@app.get("/download/{user_id}")
-async def download_h5(user_id: str):
-    file_path = "h5_file/" + str(user_id) + ".h5"
-    if os.path.exists(file_path):
-        return FileResponse(file_path, media_type='application/hdf5', filename=str(user_id) + ".h5")
-    else:
-        return {"message": "File not found."}
-
-# 성공 여부 저장
-@app.get("/end/{user_name}/success")
-async def end_success(user_name: str):
-    conn = login_admin_mysql()
-    cur = conn.cursor()
-    sql = """UPDATE `userinfo`.`users` SET `flag` = '1', `activation` = `True` WHERE (`username` = %s);"""
-    conn.execute(sql, user_name)
-    conn.commit()
-    conn.close()
-    return {"message": "You Can Use BrainWheel"}
-
-# 정확도 측정 결과
-@app.post("/end")
-async def end_result(user_name: str, result: int):
-    conn =login_admin_mysql()
-    cur = conn.cursor()
-    sql = """UPDATE `userinfo`.`users` SET `result` = %d WHERE (`username` = %s);"""
-    conn.execute(sql, result, user_name)
-    conn.commit()
-    conn.close()
-    return {"message": "Almost done"}
+    return FileResponse("front/dist/index.html")
 

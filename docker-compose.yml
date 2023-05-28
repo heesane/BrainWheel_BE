@@ -33,6 +33,9 @@ services:
       - "3306:3306"
     env_file:
       - 'BrainWheel_BE/data/mysql/env.mysql'
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     volumes:
       - './BrainWheel_BE/data/mysql/data:/var/lib/mysql'
       - './BrainWheel_BE/data/mysql/etc:/etc/mysql/conf.d'
@@ -48,7 +51,7 @@ services:
     working_dir: '/app'
     command: 'npm start'
     restart: always
-    
+
   api:
     build:
       context: ./BrainWheel_BE/data/python

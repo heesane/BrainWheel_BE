@@ -8,26 +8,21 @@
 # | password           | varchar(255) | NO   |     | NULL    |                |
 # | result             | int(1)       | NO   |     | 0       |                |
 # | target_accurate    | int(1)       | NO   |     | 80      |                |
-# | flag               | int(1)       | NO   |     | 0       |                |
+# | inf_success        | int(1)       | NO   |     | 0       |                |
+# | csv_success        | int(1)       | NO   |     | 0       |                |
+# | h5_success         | int(1)       | NO   |     | 0       |                |
+# | download_success   | int(1)       | NO   |     | 0       |                |
 # | activation         | boolean      | NO   |     | False   |                |
 # +--------------------+--------------+------+-----+---------+----------------+
 
-from typing import Optional
-from fastapi import FastAPI,Request,APIRouter
-from fastapi.responses import FileResponse
-from influxdb import client as influxdb
-import pymysql
-from pydantic import BaseModel
-import os
-import datetime
-
+from fastapi import APIRouter
 
 from routers import models
 import tool
 
 UserInfo = models.User
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/api/user", tags=["user"])
 
 inf_db = tool.inf_db
 

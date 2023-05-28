@@ -4,6 +4,11 @@
 /data/python/app/__pycache__
 /data/python/app/.vscode
 /data/python/app/tool/__pycache__
+/data/restaurant/node_modules/
+/data/restaurant/.vscode/
+/data/restaurant/__pycache__/
+/data/restaurant/rest/
+/
 /.vscode/
 /__pycache__/
 /data/node/node_modules/
