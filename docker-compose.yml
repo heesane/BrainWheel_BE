@@ -64,3 +64,16 @@ services:
     volumes:
       - ./BrainWheel_BE/data/python/app:/code
     restart: always
+
+  board:
+    build:
+      context: ./BrainWheel_BE/data/board
+      dockerfile: Dockerfile
+    container_name: board
+    working_dir: /app
+    command: uvicorn main:app --host 0.0.0.0 --port 9900 --reload
+    ports:
+      - "9900:9900"
+    volumes:
+      - ./BrainWheel_BE/data/board/app:/app
+    restart: always
