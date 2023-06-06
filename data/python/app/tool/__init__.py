@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from influxdb import client as influxdb
 
 from . import config
+from . import manage
 
 IP = config.IP
 
@@ -28,6 +29,18 @@ INF_DB_NAME = config.INF_DB_NAME
 INF_MEASUREMENT = config.INF_MEASUREMENT
 
 inf_db = influxdb.InfluxDBClient(IP,INF_PORT,INF_ADMIN_ID,INF_ADMIN_PW,INF_DB_NAME)
+
+def login_custom_mysql(user:str,passwd:str,db:str):
+    conn = pymysql.connect(host = IP,
+                        port=MYSQL_PORT,
+                        user=user,
+                        passwd=passwd,
+                        db=db,
+                        charset='utf8',
+                        autocommit=True)
+    return conn
+
+
 
 def login_admin_mysql():
     conn = pymysql.connect(host = IP,
